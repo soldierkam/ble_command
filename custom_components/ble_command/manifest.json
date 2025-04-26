@@ -1,0 +1,12 @@
+{
+  "domain": "ble_command",
+  "name": "BLE command",
+  "codeowners": [
+    "@soldierkam"
+  ],
+  "config_flow": true,
+  "documentation": "https://github.com/soldierkam/ble_command",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/soldierkam/ble_command/issues",
+  "version": "0.1.0"
+}
