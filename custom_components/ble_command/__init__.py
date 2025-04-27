@@ -58,10 +58,10 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
         #  characteristic_uuid: "00001f1f-0000-1000-8000-00805f9b34fb"
         #  data: [0x45, 0x00]
         #
-        LOGGER.debug("Call action")
         addr: str = call.data.get(ATTR_ADDR)
         char: str = call.data.get(ATTR_CHAR)
         data: bytes = call.data.get(ATTR_DATA)
+        LOGGER.debug("Write %s to %s (%s)", data.hex(), addr, char)
         scanner = bluetooth.async_get_scanner(hass)
         dev = await scanner.find_device_by_address(addr)
         if dev is None:
@@ -73,15 +73,22 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
             LOGGER.exception("Connection failed")
             return {"status": "ERROR", "msg": str(e)}
         try:
-            await client.write_gatt_char(char, data, response=False)
+            await client.write_gatt_char(char, data, response=True)
         except BleakError as e:
             LOGGER.exception("Write failed")
+            LOGGER.debug("Disconnecting dev: %s", dev)
+            await client.disconnect()
+            return {"status": "ERROR", "msg": str(e)}
+        try:
+            response = await client.read_gatt_char(char)
+        except BleakError as e:
+            LOGGER.exception("Read failed")
             return {"status": "ERROR", "msg": str(e)}
         finally:
             LOGGER.debug("Disconnecting dev: %s", dev)
             await client.disconnect()
-        LOGGER.info("Done")
-        return {"status": "OK"}
+        LOGGER.debug("Done: response=%s", response.hex())
+        return {"status": "OK", "response": response.hex()}
 
     LOGGER.info("Register action: %s", config)
     hass.services.async_register(DOMAIN, "write", handle_ble_write, SCHEMA_BLE_WRITE)
