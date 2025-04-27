@@ -5,6 +5,12 @@
     "forwardPorts": [
         8123
     ],
+    "mounts": [
+        "type=bind,source=/run/dbus,target=/run/dbus,readonly"
+    ],
+    "runArgs": [
+        "--privileged"
+    ],
     "portsAttributes": {
         "8123": {
             "label": "Home Assistant",

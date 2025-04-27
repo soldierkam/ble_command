@@ -13,14 +13,15 @@ from typing import TYPE_CHECKING
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.loader import async_get_loaded_integration
-
-from .api import IntegrationBlueprintApiClient
+from homeassistant.components import bluetooth
+from bleak import BleakScanner, BleakClient
 from .const import DOMAIN, LOGGER
-from .coordinator import BlueprintDataUpdateCoordinator
-from .data import IntegrationBlueprintData
+from bleak_retry_connector import establish_connection
+import voluptuous as vol
+import homeassistant.helpers.config_validation as cv
 
 if TYPE_CHECKING:
-    from homeassistant.core import HomeAssistant
+    from homeassistant.core import HomeAssistant, ServiceCall, ServiceResponse
 
     from .data import IntegrationBlueprintConfigEntry
 
@@ -31,49 +32,50 @@ PLATFORMS: list[Platform] = [
 ]
 
 
-# https://developers.home-assistant.io/docs/config_entries_index/#setting-up-an-entry
-async def async_setup_entry(
-    hass: HomeAssistant,
-    entry: IntegrationBlueprintConfigEntry,
-) -> bool:
-    """Set up this integration using UI."""
-    coordinator = BlueprintDataUpdateCoordinator(
-        hass=hass,
-        logger=LOGGER,
-        name=DOMAIN,
-        update_interval=timedelta(hours=1),
-    )
-    entry.runtime_data = IntegrationBlueprintData(
-        client=IntegrationBlueprintApiClient(
-            username=entry.data[CONF_USERNAME],
-            password=entry.data[CONF_PASSWORD],
-            session=async_get_clientsession(hass),
-        ),
-        integration=async_get_loaded_integration(hass, entry.domain),
-        coordinator=coordinator,
-    )
+ATTR_ADDR = "address"
+ATTR_CHAR = "characteristic_uuid"
+ATTR_DATA = "data"
+SCHEMA_BLE_WRITE = vol.Schema(
+    {
+        vol.Required(ATTR_ADDR): cv.string,
+        vol.Required(ATTR_CHAR): cv.string,
+        vol.Required(ATTR_DATA): vol.All(
+            cv.ensure_list, [vol.Coerce(int)]
+        ),  # List of integers
+    }
+)
 
-    # https://developers.home-assistant.io/docs/integration_fetching_data#coordinated-single-api-poll-for-data-for-all-entities
-    await coordinator.async_config_entry_first_refresh()
 
-    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
-    entry.async_on_unload(entry.add_update_listener(async_reload_entry))
+async def async_setup(hass: HomeAssistant, config: dict) -> bool:
+    """Set up is called when Home Assistant is loading our component."""
 
+    async def handle_ble_write(call: ServiceCall) -> ServiceResponse:
+        """Handle the service action call."""
+        # action: ble_command.write
+        # data:
+        #  address: A4:C1:38:61:67:30
+        #  characteristic_uuid: "00001f1f-0000-1000-8000-00805f9b34fb"
+        #  data: [0x45, 0x00]
+        #
+        LOGGER.debug("Call action")
+        addr: str = call.data.get(ATTR_ADDR)
+        char: str = call.data.get(ATTR_CHAR)
+        data: bytes = call.data.get(ATTR_DATA)
+        scanner = bluetooth.async_get_scanner(hass)
+        dev = await scanner.find_device_by_address(addr)
+        if dev is None:
+            return {"status": "ERROR", "msg": f"Failed to find dev {addr}"}
+        LOGGER.debug("Device: %s, %s", dev, dir(dev))
+        try:
+            client = await establish_connection(BleakClient, dev, dev.address)
+            await client.write_gatt_char(char, data, response=False)
+        except BaseException as e:
+            return {"status": "ERROR", "msg": str(e)}
+        LOGGER.info("Done")
+        return {"status": "OK"}
+
+    LOGGER.info("Register action: %s", config)
+    hass.services.async_register(DOMAIN, "write", handle_ble_write, SCHEMA_BLE_WRITE)
+
+    # Return boolean to indicate that initialization was successful.
     return True
-
-
-async def async_unload_entry(
-    hass: HomeAssistant,
-    entry: IntegrationBlueprintConfigEntry,
-) -> bool:
-    """Handle removal of an entry."""
-    return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
-
-
-async def async_reload_entry(
-    hass: HomeAssistant,
-    entry: IntegrationBlueprintConfigEntry,
-) -> None:
-    """Reload config entry."""
-    await async_unload_entry(hass, entry)
-    await async_setup_entry(hass, entry)
