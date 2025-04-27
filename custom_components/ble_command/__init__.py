@@ -60,7 +60,7 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
         #
         addr: str = call.data.get(ATTR_ADDR)
         char: str = call.data.get(ATTR_CHAR)
-        data: bytes = call.data.get(ATTR_DATA)
+        data: bytes = bytes(call.data.get(ATTR_DATA))
         LOGGER.debug("Write %s to %s (%s)", data.hex(), addr, char)
         scanner = bluetooth.async_get_scanner(hass)
         dev = await scanner.find_device_by_address(addr)
