@@ -68,7 +68,9 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
             return {"status": "ERROR", "msg": f"Failed to find dev {addr}"}
         LOGGER.debug("Device: %s", dev)
         try:
-            client = await establish_connection(BleakClient, dev, dev.address)
+            client = await establish_connection(
+                BleakClient, dev, dev.address, max_attempts=2
+            )
         except BleakError as e:
             LOGGER.exception("Connection failed")
             return {"status": "ERROR", "msg": str(e)}
