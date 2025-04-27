@@ -15,6 +15,7 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.loader import async_get_loaded_integration
 from homeassistant.components import bluetooth
 from bleak import BleakScanner, BleakClient
+from bleak.exc import BleakError
 from .const import DOMAIN, LOGGER
 from bleak_retry_connector import establish_connection
 import voluptuous as vol
@@ -65,13 +66,20 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
         dev = await scanner.find_device_by_address(addr)
         if dev is None:
             return {"status": "ERROR", "msg": f"Failed to find dev {addr}"}
-        LOGGER.debug("Device: %s, %s", dev, dir(dev))
+        LOGGER.debug("Device: %s", dev)
         try:
             client = await establish_connection(BleakClient, dev, dev.address)
+        except BleakError as e:
+            LOGGER.exception("Connection failed")
+            return {"status": "ERROR", "msg": str(e)}
+        try:
             await client.write_gatt_char(char, data, response=False)
-        except BaseException as e:
+        except BleakError as e:
             LOGGER.exception("Write failed")
             return {"status": "ERROR", "msg": str(e)}
+        finally:
+            LOGGER.debug("Disconnecting dev: %s", dev)
+            await client.disconnect()
         LOGGER.info("Done")
         return {"status": "OK"}
 
