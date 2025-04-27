@@ -70,6 +70,7 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
             client = await establish_connection(BleakClient, dev, dev.address)
             await client.write_gatt_char(char, data, response=False)
         except BaseException as e:
+            LOGGER.exception("Write failed")
             return {"status": "ERROR", "msg": str(e)}
         LOGGER.info("Done")
         return {"status": "OK"}
