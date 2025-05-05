@@ -12,6 +12,6 @@ class BleCommandFlowHandler(ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
 
-    async def async_step_user(self, _: dict | None=None) -> ConfigFlowResult:
+    async def async_step_user(self, _: dict | None = None) -> ConfigFlowResult:
         """Handle the initial step."""
         return self.async_create_entry(title="BLE command", data={})

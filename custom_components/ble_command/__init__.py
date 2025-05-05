@@ -39,6 +39,7 @@ SCHEMA_BLE_WRITE = vol.Schema(
 
 CONFIG_SCHEMA = cv.empty_config_schema
 
+
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     """Set up is called when Home Assistant is loading our component."""
 
