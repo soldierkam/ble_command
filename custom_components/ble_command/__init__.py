@@ -7,24 +7,20 @@ https://github.com/ludeeus/integration_blueprint
 
 from __future__ import annotations
 
-from datetime import timedelta
 from typing import TYPE_CHECKING
 
-from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.loader import async_get_loaded_integration
-from homeassistant.components import bluetooth
-from bleak import BleakScanner, BleakClient
-from bleak.exc import BleakError
-from .const import DOMAIN, LOGGER
-from bleak_retry_connector import establish_connection
-import voluptuous as vol
 import homeassistant.helpers.config_validation as cv
+import voluptuous as vol
+from bleak import BleakClient
+from bleak.exc import BleakError
+from bleak_retry_connector import establish_connection
+from homeassistant.components import bluetooth
+
+from .const import DOMAIN, LOGGER
 
 if TYPE_CHECKING:
+    from homeassistant.const import Platform
     from homeassistant.core import HomeAssistant, ServiceCall, ServiceResponse
-
-    from .data import IntegrationBlueprintConfigEntry
 
 PLATFORMS: list[Platform] = []
 
@@ -48,12 +44,6 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
 
     async def handle_ble_write(call: ServiceCall) -> ServiceResponse:
         """Handle the service action call."""
-        # action: ble_command.write
-        # data:
-        #  address: A4:C1:38:61:67:30
-        #  characteristic_uuid: "00001f1f-0000-1000-8000-00805f9b34fb"
-        #  data: [0x45, 0x00]
-        #
         addr: str = call.data.get(ATTR_ADDR)
         char: str = call.data.get(ATTR_CHAR)
         data: bytes = bytes(call.data.get(ATTR_DATA))
