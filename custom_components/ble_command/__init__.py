@@ -37,7 +37,7 @@ SCHEMA_BLE_WRITE = vol.Schema(
     }
 )
 
-CONFIG_SCHEMA = cv.empty_config_schema
+CONFIG_SCHEMA = cv.empty_config_schema(DOMAIN)
 
 
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:
