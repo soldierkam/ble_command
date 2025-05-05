@@ -1,24 +1,27 @@
-write:
+ble_write:
   name: Write to BLE characteristic
   description: Sends data to a BLE device using its address and characteristic UUID.
   fields:
     address:
-      required: true
+      name: Device Address
       description: Bluetooth MAC address of the target device.
+      required: true
       example: "AA:BB:CC:DD:EE:FF"
       selector:
         text:
           type: text
     characteristic_uuid:
-      required: true
+      name: Characteristic UUID
       description: UUID of the BLE characteristic to write to.
+      required: true
       example: "0000fff3-0000-1000-8000-00805f9b34fb"
       selector:
         text:
           type: text
     data:
+      name: Data Bytes
+      description: A list of integers (0–255) to send as raw data.
       required: true
-      description: A list of integer bytes to send (0–255).
       example: [1, 2, 255]
       selector:
         object:

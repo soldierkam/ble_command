@@ -1,0 +1,22 @@
+{
+    "services": {
+        "ble_write": {
+            "name": "Wyślij bajty do charakterystyki BLE",
+            "description": "Wysyła dane do wskazanego urządzenia BLE.",
+            "fields": {
+                "address": {
+                    "name": "Adres urządzenia",
+                    "description": "Adres MAC docelowego urządzenia Bluetooth."
+                },
+                "characteristic_uuid": {
+                    "name": "UUID charakterystyki",
+                    "description": "UUID charakterystyki BLE, do której mają zostać wysłane dane."
+                },
+                "data": {
+                    "name": "Bajty danych",
+                    "description": "Lista liczb całkowitych (0–255) do wysłania jako dane surowe."
+                }
+            }
+        }
+    }
+}

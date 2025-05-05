@@ -1,21 +1,22 @@
 {
-    "config": {
-        "step": {
-            "user": {
-                "description": "If you need help with the configuration have a look here: https://github.com/ludeeus/integration_blueprint",
+    "services": {
+        "ble_write": {
+            "name": "Write to BLE characteristic",
+            "description": "Sends data to a BLE device using its address and characteristic UUID.",
+            "fields": {
+                "address": {
+                    "name": "Device Address",
+                    "description": "Bluetooth MAC address of the target device."
+                },
+                "characteristic_uuid": {
+                    "name": "Characteristic UUID",
+                    "description": "UUID of the BLE characteristic to write to."
+                },
                 "data": {
-                    "username": "Username",
-                    "password": "Password"
+                    "name": "Data Bytes",
+                    "description": "A list of integers (0–255) to send as raw data."
                 }
             }
-        },
-        "error": {
-            "auth": "Username/Password is wrong.",
-            "connection": "Unable to connect to the server.",
-            "unknown": "Unknown error occurred."
-        },
-        "abort": {
-            "already_configured": "This entry is already configured."
         }
     }
 }
