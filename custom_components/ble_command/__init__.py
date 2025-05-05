@@ -26,12 +26,7 @@ if TYPE_CHECKING:
 
     from .data import IntegrationBlueprintConfigEntry
 
-PLATFORMS: list[Platform] = [
-    Platform.SENSOR,
-    Platform.BINARY_SENSOR,
-    Platform.SWITCH,
-]
-
+PLATFORMS: list[Platform] = []
 
 ATTR_ADDR = "address"
 ATTR_CHAR = "characteristic_uuid"
@@ -46,6 +41,7 @@ SCHEMA_BLE_WRITE = vol.Schema(
     }
 )
 
+CONFIG_SCHEMA = cv.empty_config_schema
 
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     """Set up is called when Home Assistant is loading our component."""
